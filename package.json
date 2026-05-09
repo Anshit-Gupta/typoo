@@ -1,0 +1,36 @@
+{
+  "name": "typoo",
+  "version": "1.0.0",
+  "description": "A minimal monkeytype-style typing test for your terminal",
+  "main": "index.js",
+  "bin": {
+    "typoo": "./bin/typoo.js"
+  },
+  "files": [
+    "index.js",
+    "bin/"
+  ],
+  "keywords": [
+    "typing",
+    "typing-test",
+    "wpm",
+    "monkeytype",
+    "cli",
+    "terminal",
+    "keyboard",
+    "speed",
+    "practice"
+  ],
+  "author": "anshi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anshi/typoo"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2"
+  }
+}
