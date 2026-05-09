@@ -63,6 +63,7 @@ switch (cmd) {
     ${chalk.hex('#e2b714')('typoo code js 60')}          JavaScript, 60s
     ${chalk.hex('#e2b714')('typoo code 60')}             random language, 60s
     ${chalk.hex('#e2b714')('typoo scores')}              show personal bests
+    ${chalk.hex('#e2b714')('typoo github')}              open GitHub repo in browser
     ${chalk.hex('#e2b714')('typoo help')}                show this help
 
   ${chalk.hex('#d1d0c5')('difficulties:')}
@@ -81,6 +82,20 @@ switch (cmd) {
     ${chalk.hex('#646669')('esc')}          quit
 `);
     break;
+
+  case 'github':
+  case 'repo': {
+    const { exec } = require('child_process');
+    const url = 'https://github.com/Anshit-Gupta/typoo';
+    const openCmd = process.platform === 'win32' ? `start "" "${url}"`
+                  : process.platform === 'darwin' ? `open "${url}"`
+                  : `xdg-open "${url}"`;
+    console.log(`  opening ${chalk.hex('#e2b714')(url)} ...`);
+    exec(openCmd, (err) => {
+      if (err) console.log(`  could not open browser. visit: ${chalk.hex('#e2b714')(url)}`);
+    });
+    break;
+  }
 
   case 'version':
   case '--version':
