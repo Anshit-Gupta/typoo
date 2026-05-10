@@ -57,6 +57,16 @@ npm link
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screenshot-game.png" alt="typoo game screen" width="700" />
+  <br/><br/>
+  <img src="assets/screenshot-results.png" alt="typoo results screen" width="700" />
+</p>
+
+---
+
 ## 🚀 Usage
 
 ### Word mode
