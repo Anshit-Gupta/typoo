@@ -10,7 +10,6 @@ const path     = require('path');
 process.on('exit', () => {
   try { process.stdout.write('\x1b[?25h'); } catch {}
 });
-process.on('SIGINT',  () => process.exit(0));
 process.on('SIGTERM', () => process.exit(0));
 
 // ─── Palette (monkeytype-inspired) ──────────────────────────────────────────
@@ -823,5 +822,196 @@ function showCodeResults(codeLines, typedLines, elapsed, duration, language, onR
 
 module.exports.code = function(duration, language) {
   startCodeGame(duration, language);
+};
+
+// ─── Zen mode ────────────────────────────────────────────────────────────────
+// Free typing — no targets, no timer, no pressure. Just type.
+
+function buildZenLines(text) {
+  const { lineChars } = getLayout();
+  const lines = [];
+  let line = '';
+  for (let i = 0; i < text.length; i++) {
+    line += text[i];
+    if (line.length >= lineChars) {
+      lines.push(line);
+      line = '';
+    }
+  }
+  lines.push(line); // push remaining (even if empty, for cursor)
+  return lines;
+}
+
+function startZenGame() {
+  let typedText     = '';
+  let started       = false;
+  let finished      = false;
+  let startTime     = null;
+  let idleTimeout   = null;
+
+  const IDLE_MS = 3000; // auto-finish after 3s idle
+
+  hideCursor();
+  fullClear();
+
+  function resetIdleTimer() {
+    if (idleTimeout) clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(() => {
+      if (started && !finished && typedText.length > 0) finish();
+    }, IDLE_MS);
+  }
+
+  function getViewOffset(lines) {
+    // show last 3 lines (sliding window same as word/code mode)
+    return Math.max(0, lines.length - 3);
+  }
+
+  function draw() {
+    const { leftPad, topMargin } = getLayout();
+    const pad = ' '.repeat(leftPad);
+    let out = '\n'.repeat(topMargin);
+
+    // header
+    const status = started ? '' : sub('  start typing...');
+    out += pad + yellow('typoo') + '  ' + sub('zen') + status + '\n\n';
+
+    // build lines from typed text
+    const lines = buildZenLines(typedText);
+    const offset = getViewOffset(lines);
+    const visibleLines = lines.slice(offset, offset + 3);
+
+    for (let i = 0; i < 3; i++) {
+      const lineText = visibleLines[i];
+      if (lineText === undefined) {
+        out += '\n';
+      } else {
+        const isLastLine = (offset + i) === lines.length - 1;
+        let rendered = ' '.repeat(leftPad);
+        rendered += white(lineText);
+        // show cursor on the last line (current typing position)
+        if (isLastLine) {
+          rendered += cur(' ');
+        }
+        out += rendered + '\n';
+      }
+    }
+
+    out += '\n\n';
+    out += pad + sub('esc → quit  ·  enter → finish') + '\n';
+
+    out = out.replace(/\n/g, CLEAR_LINE + '\n');
+    process.stdout.write(CURSOR_TOP + out + CLEAR_DOWN);
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    if (idleTimeout) clearTimeout(idleTimeout);
+    const elapsed = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
+    showCursor();
+    showZenResults(typedText, elapsed, () => startZenGame());
+  }
+
+  function handleKey(str, key) {
+    if (!key) return;
+
+    if (key.name === 'escape') {
+      if (idleTimeout) clearTimeout(idleTimeout);
+      showCursor();
+      fullClear();
+      process.exit(0);
+    }
+
+    if (finished) return;
+
+    // start on first printable key
+    if (!started) {
+      const isPrintable = str && str.length === 1 && !key.ctrl && !key.meta;
+      if (isPrintable) {
+        started   = true;
+        startTime = Date.now();
+        typedText += str;
+        resetIdleTimer();
+      }
+      draw();
+      return;
+    }
+
+    // Enter → finish immediately
+    if (key.name === 'return' || str === '\r') {
+      if (typedText.length > 0) finish();
+      return;
+    }
+
+    // Backspace
+    if (key.name === 'backspace') {
+      if (typedText.length > 0) {
+        typedText = typedText.slice(0, -1);
+        resetIdleTimer();
+      }
+    // Printable character
+    } else if (str && str.length === 1 && !key.ctrl && !key.meta) {
+      typedText += str;
+      resetIdleTimer();
+    }
+
+    if (!finished) draw();
+  }
+
+  readline.emitKeypressEvents(process.stdin);
+  if (!process.stdin.isTTY) {
+    console.error('typoo requires an interactive terminal (TTY).');
+    process.exit(1);
+  }
+  process.stdin.setRawMode(true);
+
+  process.stdin.removeAllListeners('keypress');
+  process.stdin.on('keypress', handleKey);
+
+  draw();
+}
+
+// ─── Zen results screen ──────────────────────────────────────────────────────
+function showZenResults(typedText, elapsed, onRestart) {
+  fullClear();
+
+  const totalChars = typedText.length;
+  const totalWords = typedText.trim().length > 0
+    ? typedText.trim().split(/\s+/).length
+    : 0;
+  const mins = elapsed / 60;
+  const wpm  = mins > 0 ? Math.round((totalChars / 5) / mins) : 0;
+
+  const { leftPad, topMargin } = getLayout();
+  const pad = ' '.repeat(leftPad);
+  let out = '\n'.repeat(topMargin);
+
+  out += pad + yellow('typoo') + sub('  ·  zen') + '\n\n\n';
+
+  out += pad + chalk.hex(C.correct).bold(String(wpm).padEnd(8)) + sub('wpm') + '\n';
+  out += pad + white(String(totalChars).padEnd(8)) + sub('characters') + '\n';
+  out += pad + white(String(totalWords).padEnd(8)) + sub('words') + '\n';
+  out += pad + white((elapsed + 's').padEnd(8)) + sub('time') + '\n\n';
+
+  out += '\n' + pad + sub('space') + white(' again') + sub('  ·  ') + sub('esc') + white(' quit') + '\n\n';
+
+  out = out.replace(/\n/g, CLEAR_LINE + '\n');
+  process.stdout.write(CURSOR_TOP + out + CLEAR_DOWN);
+
+  process.stdin.removeAllListeners('keypress');
+  process.stdin.on('keypress', (str, key) => {
+    if (!key) return;
+    if (str === ' ') {
+      process.stdin.removeAllListeners('keypress');
+      onRestart();
+    } else if (key.name === 'escape') {
+      showCursor();
+      process.exit(0);
+    }
+  });
+}
+
+module.exports.zen = function() {
+  startZenGame();
 };
 

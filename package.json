@@ -1,6 +1,6 @@
 {
   "name": "typoo",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "A minimal monkeytype-style typing test for your terminal",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,7 @@
     "speed",
     "practice"
   ],
-  "author": "anshi",
+  "author": "anshitgupta",
   "license": "MIT",
   "repository": {
     "type": "git",

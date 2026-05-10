@@ -4,20 +4,27 @@
 const chalk   = require('chalk');
 const pkg     = require('../package.json');
 const args    = process.argv.slice(2);
-const cmd     = args[0] || 'play';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
+const SUBCOMMANDS  = ['code', 'zen', 'scores', 'help', '--help', '-h', 'github', 'repo', 'version', '--version', '-v'];
+
+// Determine if first arg is a subcommand or a word-mode argument
+const cmd = args.length === 0 ? 'word'
+          : SUBCOMMANDS.includes(args[0]) ? args[0]
+          : 'word';
+
+// For word mode, parse ALL args (not slice from 1) since there's no "play" prefix
+const wordArgs = cmd === 'word' ? args : args.slice(1);
 
 switch (cmd) {
-  case 'play': {
-    // parse remaining args — difficulty and duration can be in either order
+  case 'word': {
     let duration   = 30;
     let difficulty = 'medium';
-    for (let i = 1; i < args.length; i++) {
-      if (DIFFICULTIES.includes(args[i])) {
-        difficulty = args[i];
+    for (let i = 0; i < wordArgs.length; i++) {
+      if (DIFFICULTIES.includes(wordArgs[i])) {
+        difficulty = wordArgs[i];
       } else {
-        const n = parseInt(args[i], 10);
+        const n = parseInt(wordArgs[i], 10);
         if (!isNaN(n) && n > 0) duration = n;
       }
     }
@@ -29,11 +36,11 @@ switch (cmd) {
     const CODE_LANGS = ['js', 'py'];
     let duration = 30;
     let language = null;
-    for (let i = 1; i < args.length; i++) {
-      if (CODE_LANGS.includes(args[i])) {
-        language = args[i];
+    for (let i = 0; i < wordArgs.length; i++) {
+      if (CODE_LANGS.includes(wordArgs[i])) {
+        language = wordArgs[i];
       } else {
-        const n = parseInt(args[i], 10);
+        const n = parseInt(wordArgs[i], 10);
         if (!isNaN(n) && n > 0) duration = n;
       }
     }
@@ -45,6 +52,10 @@ switch (cmd) {
     require('../index.js').showScores();
     break;
 
+  case 'zen':
+    require('../index.js').zen();
+    break;
+
   case 'help':
   case '--help':
   case '-h':
@@ -52,18 +63,21 @@ switch (cmd) {
   ${chalk.hex('#e2b714').bold('typoo')}  ${chalk.hex('#646669')('— minimal CLI typing test')}
 
   ${chalk.hex('#d1d0c5')('usage:')}
-    ${chalk.hex('#e2b714')('typoo play')}                start a 30s medium test
-    ${chalk.hex('#e2b714')('typoo play 60')}             60s medium test
-    ${chalk.hex('#e2b714')('typoo play easy')}           30s easy test
-    ${chalk.hex('#e2b714')('typoo play hard 60')}        60s hard test
-    ${chalk.hex('#e2b714')('typoo play 15 easy')}        15s easy test
-    ${chalk.hex('#e2b714')('typoo code')}                random code snippet, 30s
-    ${chalk.hex('#e2b714')('typoo code js')}             JavaScript, 30s
-    ${chalk.hex('#e2b714')('typoo code py')}             Python, 30s
-    ${chalk.hex('#e2b714')('typoo code js 60')}          JavaScript, 60s
-    ${chalk.hex('#e2b714')('typoo code 60')}             random language, 60s
+    ${chalk.hex('#e2b714')('typoo')}                    30s medium test
+    ${chalk.hex('#e2b714')('typoo 60')}                  60s medium test
+    ${chalk.hex('#e2b714')('typoo easy')}                30s easy test
+    ${chalk.hex('#e2b714')('typoo hard 60')}              60s hard test
+    ${chalk.hex('#e2b714')('typoo easy 60')}              60s easy test
+
+    ${chalk.hex('#e2b714')('typoo code')}                random code snippet · 30s
+    ${chalk.hex('#e2b714')('typoo code js')}              javascript · 30s
+    ${chalk.hex('#e2b714')('typoo code py')}              python · 30s
+    ${chalk.hex('#e2b714')('typoo code js 60')}            javascript · 60s
+
+    ${chalk.hex('#e2b714')('typoo zen')}                  free typing · no pressure
+
     ${chalk.hex('#e2b714')('typoo scores')}              show personal bests
-    ${chalk.hex('#e2b714')('typoo github')}              open GitHub repo in browser
+    ${chalk.hex('#e2b714')('typoo github')}              open github repo in browser
     ${chalk.hex('#e2b714')('typoo help')}                show this help
 
   ${chalk.hex('#d1d0c5')('difficulties:')}
@@ -73,7 +87,8 @@ switch (cmd) {
 
   ${chalk.hex('#d1d0c5')('during test:')}
     ${chalk.hex('#646669')('any key')}      start typing (timer begins on first char)
-    ${chalk.hex('#646669')('space')}        submit word (word mode) / type normally (code mode)
+    ${chalk.hex('#646669')('space')}        submit word (word mode)
+    ${chalk.hex('#646669')('enter')}        submit line (code mode) / finish (zen mode)
     ${chalk.hex('#646669')('backspace')}    delete last char
     ${chalk.hex('#646669')('esc')}          quit
 
@@ -102,8 +117,4 @@ switch (cmd) {
   case '-v':
     console.log('typoo v' + pkg.version);
     break;
-
-  default:
-    console.log(`  unknown command: ${cmd}\n  try: typoo help`);
-    process.exit(1);
 }

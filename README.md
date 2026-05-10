@@ -14,6 +14,7 @@ A minimal, beautiful **monkeytype-style** typing test that runs entirely in your
 
 - **Word mode** — classic typing test with easy / medium / hard difficulty
 - **Code mode** — type real JavaScript or Python snippets
+- **Zen mode** — free typing, no targets, no timer, just vibes
 - **Flicker-free rendering** — ANSI cursor-jump technique, no screen clearing
 - **Personal bests** — automatically saved to `~/.typoo_pb.json`
 - **Monkeytype aesthetics** — dark theme with gold/cream/red colour palette
@@ -24,14 +25,31 @@ A minimal, beautiful **monkeytype-style** typing test that runs entirely in your
 
 ## 📦 Install
 
+### Windows
+
 ```bash
 npm install -g typoo
 ```
 
-Or clone and link locally:
+### macOS / Linux
 
 ```bash
-git clone https://github.com/anshi/typoo.git
+sudo npm install -g typoo
+```
+
+> **Don't want to use sudo?** Configure npm to use a user-writable directory:
+> ```bash
+> mkdir -p ~/.npm-global
+> npm config set prefix '~/.npm-global'
+> echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc  # or ~/.zshrc for zsh
+> source ~/.bashrc
+> npm install -g typoo
+> ```
+
+### From source
+
+```bash
+git clone https://github.com/Anshit-Gupta/typoo.git
 cd typoo
 npm install
 npm link
@@ -45,11 +63,10 @@ npm link
 
 ```bash
 typoo                     # 30s medium test (default)
-typoo play                # same as above
-typoo play 60             # 60-second test
-typoo play easy           # easy difficulty (short words)
-typoo play hard 15        # hard difficulty, 15 seconds
-typoo play 45 easy        # order doesn't matter
+typoo 60                  # 60-second test
+typoo easy                # easy difficulty, 30s
+typoo hard 60             # hard difficulty, 60 seconds
+typoo easy 15             # easy difficulty, 15 seconds
 ```
 
 ### Code mode
@@ -60,6 +77,14 @@ typoo code js             # JavaScript snippets
 typoo code py             # Python snippets
 typoo code js 60          # JavaScript, 60 seconds
 ```
+
+### Zen mode
+
+```bash
+typoo zen                 # free typing, no targets, no timer
+```
+
+Just type whatever you want. No pressure, no scoring against targets. Press **Enter** or stop typing for 3 seconds to see your stats.
 
 ### Other commands
 
@@ -135,9 +160,11 @@ typoo scores    # view all personal bests
 
 ## 📋 Requirements
 
-- **Node.js** ≥ 14.0.0
+- **[Node.js](https://nodejs.org/)** ≥ 14.0.0 (includes npm — needed to install and run typoo)
 - An interactive terminal (TTY) — won't work in piped/non-interactive environments
-- Works on **Windows**, **macOS**, and **Linux**
+- Works on **Windows**, **macOS**, and **Linux** (bash, zsh, PowerShell)
+
+> Don't have Node.js? Download it from [nodejs.org](https://nodejs.org/) — grab the **LTS** version.
 
 ---
 
