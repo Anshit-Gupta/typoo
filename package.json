@@ -1,6 +1,6 @@
 {
   "name": "typoo",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A minimal monkeytype-style typing test for your terminal",
   "main": "index.js",
   "bin": {
